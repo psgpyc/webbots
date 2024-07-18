@@ -5,6 +5,8 @@ import booking.constants as const
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.select import Select
+
 
 
 class Booking(webdriver.Chrome):
@@ -37,15 +39,16 @@ class Booking(webdriver.Chrome):
 
     def remove_login_popup(self):
         try:
-            popup = WebDriverWait(self, 20).until(EC.presence_of_element_located(
+            popup = WebDriverWait(self, 10).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "button[aria-label='Dismiss sign-in info.']")))
-
-            popup.click()
-            return 'success'
 
         except:
             print('An error occurred! Please retry in a while: remove login page')
             return 'error'
+
+        popup.click()
+        return 'success'
+
 
     def change_currency(self, currency):
         el_currency = WebDriverWait(self, 10).until(EC.presence_of_element_located(
@@ -102,17 +105,23 @@ class Booking(webdriver.Chrome):
         except Exception as e:
             print(e)
 
-    def select_children_age(self, age=12):
-        age_input_elem = self.find_element(By.XPATH, "//DIV[@class='abb8c87649']//DIV[@data-testid='kids-ages']/*[1]/*[1]/*[1]/OPTION[@value='12']")
-        age_input_elem.click()
+    # def select_children_age(self, index_val,age=12):
+    #     try:
+    #         age_input_elem =
+    #         age_input_elem.click()
+    #     except:
+    #         print('An error occurred!', index_val+1)
 
     def select_children(self, children_number):
         if children_number > 0:
             children_el = self.find_element(By.XPATH, "//DIV[@class='abb8c87649']/*[2]/*[3]/*[3]")
             for i in range(children_number):
                 children_el.click()
+        for each_children in range(children_number):
 
-            self.select_children_age()
+            elem = self.find_element(By.XPATH, f"//DIV[@class='abb8c87649']//DIV[@data-testid='kids-ages']")
+            for each in elem.get_attribute('outerHTML'):
+                print(each)
 
     def select_no_of_rooms(self, no_of_rooms):
         if no_of_rooms > 1:
