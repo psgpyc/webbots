@@ -10,7 +10,7 @@ from selenium.webdriver.support.select import Select
 
 
 class Booking(webdriver.Chrome):
-    def __init__(self, driver_path=r"C:\Users\psgpy\PycharmProjects\bookingWebBot\chrome-win64", teardown=False):
+    def __init__(self, driver_path=r"C:\Users\psgpy\PycharmProjects\webbots\chrome-win64", teardown=False):
         self.driver_path = driver_path
         self.teardown = teardown
         os.environ["PATH"] += os.pathsep + driver_path
