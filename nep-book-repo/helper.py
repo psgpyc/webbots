@@ -26,3 +26,15 @@ def write_to_file(title_and_links_list, file_name):
         for row in title_and_links_list:
             writer.writerow(row)
 
+
+def read_links_from_csv(file_path):
+    links = []
+    with open(file_path, mode='r', newline='', encoding='utf-8') as file:
+        csv_reader = csv.reader(file)
+        next(csv_reader)  # Skip the header row
+        for row in csv_reader:
+            links.append(row[1])  # Append the link (second column)
+    return links
+
+
+

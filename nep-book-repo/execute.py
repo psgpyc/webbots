@@ -1,4 +1,4 @@
-from thuprai_initial_links import ThupraiScrapper
+from thuprai import ThupraiScrapper
 
 
 ts = ThupraiScrapper()
