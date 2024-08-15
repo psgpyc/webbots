@@ -229,9 +229,9 @@ class BooksDetails(ThupraiScrapper):
         return result
 
     def execute(self):
-
+        val = []
         links = self.get_links(r'C:\Users\psgpy\PycharmProjects\webbots\nep-book-repo\scrapped-csvs\books_title_links_thuprai.csv')
-        for each in links['links'][:3]:
+        for index, each in enumerate(links['links'][100:1000]):
             if 'taksar' in each:
                 continue
             else:
@@ -242,8 +242,10 @@ class BooksDetails(ThupraiScrapper):
                 additional_details = self.get_additional_details(soup)
 
                 parsed_value = {**title_and_author, **binding_and_price, **publisher_details, **additional_details}
-                # write_to_file(title_and_links_list=parsed_value, file_name='thuprai_parsed')
-                print(parsed_value)
+                val.append(parsed_value)
+                print(index)
+
+        write_to_file(val, file_name='thuprai_books')
 
 
 bd = BooksDetails()

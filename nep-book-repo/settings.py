@@ -1,6 +1,6 @@
 
 
-THUPRAI_BASE_URL = 'https://www.thuprai.com'#
+THUPRAI_BASE_URL = 'https://www.thuprai.com'
 
 ENGLISH_TITLE_CLASS = "mt-1 text-2xl font-bold text-gray-900"
 PRICE_BLOCK = "mt-4 flex w-full flex-wrap gap-8 text-left"
