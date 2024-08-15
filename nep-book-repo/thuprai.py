@@ -1,4 +1,5 @@
 import bs4
+import json
 import requests
 import time
 import csv
@@ -54,11 +55,11 @@ class BooksDetails(ThupraiScrapper):
         self.links['links'] = read_links_from_csv(filepath)
         return self.links
 
-    def get_title_and_author(self, soup):
+    def get_title_and_author(self, soup, english_title_class=ENGLISH_TITLE_CLASS):
         result = {}
         try:
             # find the english title
-            title_english_elem = soup.find(attrs={"class": ENGLISH_TITLE_CLASS})
+            title_english_elem = soup.find(attrs={"class": english_title_class})
             if title_english_elem is None:
                 raise ValueError("English title element not found")
             result['title_english'] = title_english_elem.get_text(strip=True)
@@ -90,7 +91,12 @@ class BooksDetails(ThupraiScrapper):
 
     def get_price_details(self, soup):
         # Initialize an empty list to store the results
-        result = {}
+        result = {
+            'Audiobook': None,
+            'E-book': None,
+            'Paperback': None,
+            'Hardcover': None
+        }
         try:
             # Find the main price block div using its class name
             price_block = soup.find("div", attrs={
@@ -137,9 +143,7 @@ class BooksDetails(ThupraiScrapper):
                 else:
                     print("price div not found")
                 # Append the extracted binding type and price to the result list
-
-                price_dict = {'price':book_price}
-                result[binding_type] = price_dict
+                result[binding_type] = book_price
 
         except (AttributeError, ValueError) as e:
             # Handle any AttributeErrors that occur during the process
@@ -147,13 +151,13 @@ class BooksDetails(ThupraiScrapper):
             print('An error occurred', str(e))
         # Return the list of extracted price details
 
-        if len(result) == 0:
-            return {'is_pdf': True, 'price': 'free'}
-        else:
-            return result
+        return result
 
     def get_publishers_details(self, soup):
-        result = {}
+        result = {
+            'publisher_profile_link': None,
+            'publisher_name': None
+        }
         try:
             publisher_block = soup.find("div", class_=PUBLISHER_BLOCK)
             if publisher_block is None:
@@ -227,22 +231,21 @@ class BooksDetails(ThupraiScrapper):
     def execute(self):
 
         links = self.get_links(r'C:\Users\psgpy\PycharmProjects\webbots\nep-book-repo\scrapped-csvs\books_title_links_thuprai.csv')
-        url = "https://thuprai.com/magazine/taksar-vol-4-issue-4/"
-        if 'taksar' in url:
-            return 'taksar found'
-        else:
-            soup = self.get_soup(url=url)
+        for each in links['links'][:3]:
+            if 'taksar' in each:
+                continue
+            else:
+                soup = self.get_soup(url=each)
+                title_and_author = self.get_title_and_author(soup)
+                binding_and_price = self.get_price_details(soup)
+                publisher_details = self.get_publishers_details(soup)
+                additional_details = self.get_additional_details(soup)
 
-            title_and_author = self.get_title_and_author(soup)
-            binding_and_price = self.get_price_details(soup)
-            publisher_details = self.get_publishers_details(soup)
-            additional_details = self.get_additional_details(soup)
-
-            return {**title_and_author, 'bindings': binding_and_price, **publisher_details, **additional_details},
-
-
+                parsed_value = {**title_and_author, **binding_and_price, **publisher_details, **additional_details}
+                # write_to_file(title_and_links_list=parsed_value, file_name='thuprai_parsed')
+                print(parsed_value)
 
 
 bd = BooksDetails()
-print(bd.execute())
+bd.execute()
 

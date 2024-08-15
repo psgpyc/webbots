@@ -13,8 +13,10 @@ def get_field_names_from_dict(a_dict):
 
 
 def write_to_file(title_and_links_list, file_name):
+    print(title_and_links_list)
     csv_file = f"{file_name}.csv"
-    fieldnames = get_field_names_from_dict(title_and_links_list[0])
+    fieldnames = get_field_names_from_dict(title_and_links_list)
+    print(fieldnames)
 
     with open(csv_file, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -23,8 +25,9 @@ def write_to_file(title_and_links_list, file_name):
         writer.writeheader()
 
         # Write the rows
-        for row in title_and_links_list:
-            writer.writerow(row)
+        # for row in title_and_links_list.values():
+        #     writer.writerow(row)
+        writer.writerows(title_and_links_list)
 
 
 def read_links_from_csv(file_path):
@@ -35,6 +38,7 @@ def read_links_from_csv(file_path):
         for row in csv_reader:
             links.append(row[1])  # Append the link (second column)
     return links
+
 
 
 
