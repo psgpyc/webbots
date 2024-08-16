@@ -265,6 +265,4 @@ class BooksDetails(ThupraiScrapper):
         # parsed_value = {**title_and_author, **binding_and_price, **publisher_details, **additional_details}
         # print(parsed_value)
 
-bd = BooksDetails()
-bd.execute()
 
