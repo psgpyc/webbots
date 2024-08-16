@@ -56,7 +56,12 @@ class BooksDetails(ThupraiScrapper):
         return self.links
 
     def get_title_and_author(self, soup, english_title_class=ENGLISH_TITLE_CLASS):
-        result = {}
+        result = {
+            'title_english':None,
+            'title_nepali': None,
+            'author_profile_link': None,
+            'author_name': None
+        }
         try:
             # find the english title
             title_english_elem = soup.find(attrs={"class": english_title_class})
@@ -79,13 +84,10 @@ class BooksDetails(ThupraiScrapper):
 
             result['author_profile_link'] = author_profile_link
             result['author_name'] = author_name
+            print(result)
 
         except (AttributeError, ValueError) as e:
             logging.error(f'An error occurred: {str(e)}')
-            return {'title_english': None,
-                    'title_nepali': None,
-                    'author_profile_link': None,
-                    'author_name': None}
 
         return result
 
@@ -97,6 +99,7 @@ class BooksDetails(ThupraiScrapper):
             'Paperback': None,
             'Hardcover': None
         }
+        book_price = None
         try:
             # Find the main price block div using its class name
             price_block = soup.find("div", attrs={
@@ -147,11 +150,15 @@ class BooksDetails(ThupraiScrapper):
 
         except (AttributeError, ValueError) as e:
             # Handle any AttributeErrors that occur during the process
-
             print('An error occurred', str(e))
         # Return the list of extracted price details
 
-        return result
+        if all(value is None for value in result.values()):
+            result['E-book'] = 0
+            return result
+        else:
+
+            return result
 
     def get_publishers_details(self, soup):
         result = {
@@ -229,9 +236,10 @@ class BooksDetails(ThupraiScrapper):
         return result
 
     def execute(self):
-        val = []
         links = self.get_links(r'C:\Users\psgpy\PycharmProjects\webbots\nep-book-repo\scrapped-csvs\books_title_links_thuprai.csv')
-        for index, each in enumerate(links['links'][100:1000]):
+        for index, each in enumerate(links['links'][4000:4500]):
+            val = []
+
             if 'taksar' in each:
                 continue
             else:
@@ -244,9 +252,18 @@ class BooksDetails(ThupraiScrapper):
                 parsed_value = {**title_and_author, **binding_and_price, **publisher_details, **additional_details}
                 val.append(parsed_value)
                 print(index)
+                time.sleep(random.randint(2, 5))
 
-        write_to_file(val, file_name='thuprai_books')
+                write_to_file(val, file_name='thuprai_books')
 
+        # soup = self.get_soup(url='https://thuprai.com/book/kheldai-kheldai-sikau/')
+        # title_and_author = self.get_title_and_author(soup)
+        # binding_and_price = self.get_price_details(soup)
+        # publisher_details = self.get_publishers_details(soup)
+        # additional_details = self.get_additional_details(soup)
+        #
+        # parsed_value = {**title_and_author, **binding_and_price, **publisher_details, **additional_details}
+        # print(parsed_value)
 
 bd = BooksDetails()
 bd.execute()
