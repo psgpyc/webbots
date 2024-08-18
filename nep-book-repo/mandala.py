@@ -1,20 +1,14 @@
 import requests
-import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
-from time import sleep
-import random
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-from helper import get_user_agent
+from helpers.helper import get_user_agent
 
 
 class MandalaScraper:

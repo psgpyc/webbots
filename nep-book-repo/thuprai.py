@@ -1,11 +1,9 @@
 import bs4
-import json
 import requests
 import time
-import csv
 import re
 import random
-from helper import get_user_agent, write_to_file, read_links_from_csv
+from helpers.helper import get_user_agent, write_to_file, read_links_from_csv
 from settings import THUPRAI_BASE_URL, ENGLISH_TITLE_CLASS, PRICE_BLOCK, PRICE_DIV, PRICE_SPAN, PUBLISHER_BLOCK, PUBLISER_NAME, ADDITIONAL_DETAILS_ATTRS, ADDITIONAL_DETAILS_ATTRS_EACH
 
 import logging
