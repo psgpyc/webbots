@@ -1,13 +1,14 @@
 import random
 import csv
 import os
-
+import sys
 
 def get_user_agent():
-    with open("user-agents.txt") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "user-agents.txt")
+    with open(file_path) as f:
         agents = f.read().splitlines()
         return random.choice(agents)
-
 
 def get_field_names_from_dict(a_dict):
     return a_dict.keys()
