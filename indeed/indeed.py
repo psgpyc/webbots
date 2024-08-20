@@ -122,15 +122,9 @@ class BaseScraper:
             time.sleep(2)
             job_links.append(each.find_element(By.TAG_NAME, 'a').get_attribute('href'))
 
-        print(job_links)
+        to_file = link_to_file('indeed_links.csv',job_links)
+        print(to_file)
        
-
-
-    
-
-
-
-
 
     def hit_and_wait(self, interval=10):
         self.options.headless = True
@@ -147,7 +141,7 @@ class BaseScraper:
         except (NoSuchElementException, TimeoutException):
             print('Element body could not be located')
 
-        self.perform_search(body=body_page, title='data', location='london' ,driver=driver)
+        self.perform_search(body=body_page, title='python', location='london' ,driver=driver)
 
         # job_links = self.get_job_results(driver=driver)
         # to_file = link_to_file('indeed_links.csv',job_links)
