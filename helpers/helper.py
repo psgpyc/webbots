@@ -1,7 +1,6 @@
 import random
 import csv
 import os
-import sys
 
 def get_user_agent():
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -42,4 +41,10 @@ def read_links_from_csv(file_path):
     return links
 
 
+def link_to_file(file_path, links):
+    with open(file_path, 'a') as file:
+        for val,link in enumerate(links):
+            file.write(link + '\n')
+            print(val, 'written..')
+    return 'Successfull'
 

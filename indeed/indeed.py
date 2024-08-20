@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-from helpers.helper import get_user_agent
+from helpers.helper import get_user_agent, link_to_file
 
 
 class BaseScraper:
@@ -68,16 +68,70 @@ class BaseScraper:
         EC.element_to_be_clickable((By.CLASS_NAME, 'yosegi-InlineWhatWhere-primaryButton')))
         button.click()
 
+    def close_popup_if_present(self, driver, timeout=10):
+        try:
+            # Wait for the popup to be present
+            popup = WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((By.ID, "mosaic-desktopserpjapopup"))
+            )
+            
+            # If the popup is found, look for the close button
+            close_button = popup.find_element(By.CSS_SELECTOR, "button[aria-label='close']")
+            
+            # Click the close button
+            close_button.click()
+            print("Popup found and closed successfully.")
+        
+        except TimeoutException:
+            print("Popup did not appear within the specified timeout.")
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+
+
+    def get_current_pagination(self, driver):
+
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        pagination_ul = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'nav.css-98e656.eu4oa1w0  ul.css-1g90gv6.eu4oa1w0')))
+        current_page = pagination_ul.find_element(By.CSS_SELECTOR, 'a[data-testid="pagination-page-current"]')
+
+        try:
+            # Using XPath to find the next sibling li element
+            next_sibling = current_page.find_element(By.XPATH, './parent::li/following-sibling::li')
+            if next_sibling.get_attribute('data-testid') != 'pagination-page-next':
+                next_sibling.click()
+
+        except NoSuchElementException:
+            print("No next page found. This might be the last page.")
+
+
+
+
+        # for each in pagination_ul:
+        #    print(each.get_attribute('class'))
+        #    if each.get_attribute('class') != "css-akkh0a e8ju0x50":
+        #        each.click()
+        #        self.close_popup_if_present(driver) 
+        #        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        #        time.sleep(10)
+
+
     def get_job_results(self, driver):
-        job_links = []
+        # job_links = []
 
-        # find the div that contains cards with job descriptions
-        div_result = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div/div[2]/div/div[5]/div/div[1]/div[5]/div/ul')))
-        li = div_result.find_elements(By.CSS_SELECTOR, '.job_seen_beacon')
+        # # find the div that contains cards with job descriptions
+        # div_result = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div/div[2]/div/div[5]/div/div[1]/div[5]/div/ul')))
+        # li = div_result.find_elements(By.CSS_SELECTOR, '.job_seen_beacon')
 
-        for each in li:
-            time.sleep(2)
-            job_links.append(each.find_element(By.TAG_NAME, 'a').get_attribute('href'))
+        # for each in li:
+        #     time.sleep(2)
+        #     job_links.append(each.find_element(By.TAG_NAME, 'a').get_attribute('href'))
+
+        
+        self.get_current_pagination(driver)
+
+
+        # return job_links
+    
 
 
 
@@ -98,8 +152,11 @@ class BaseScraper:
         except (NoSuchElementException, TimeoutException):
             print('Element body could not be located')
 
-        self.perform_search(body=body_page, title='python', location='london' ,driver=driver)
-        self.get_job_results(driver=driver)
+        self.perform_search(body=body_page, title='data', location='london' ,driver=driver)
+
+        job_links = self.get_job_results(driver=driver)
+        # to_file = link_to_file('indeed_links.csv',job_links)
+        # print(to_file)
 
               
 
