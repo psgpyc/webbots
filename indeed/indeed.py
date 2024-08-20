@@ -89,6 +89,8 @@ class BaseScraper:
 
 
     def get_current_pagination(self, driver):
+        
+        self.get_job_results(driver)
 
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         pagination_ul = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'nav.css-98e656.eu4oa1w0  ul.css-1g90gv6.eu4oa1w0')))
@@ -99,6 +101,8 @@ class BaseScraper:
             next_sibling = current_page.find_element(By.XPATH, './parent::li/following-sibling::li')
             if next_sibling.get_attribute('data-testid') != 'pagination-page-next':
                 next_sibling.click()
+                self.close_popup_if_present(driver) 
+                self.get_job_results(driver)
 
         except NoSuchElementException:
             print("No next page found. This might be the last page.")
@@ -111,26 +115,25 @@ class BaseScraper:
         #    if each.get_attribute('class') != "css-akkh0a e8ju0x50":
         #        each.click()
         #        self.close_popup_if_present(driver) 
-        #        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        #        
         #        time.sleep(10)
 
 
     def get_job_results(self, driver):
-        # job_links = []
+        job_links = []
 
-        # # find the div that contains cards with job descriptions
-        # div_result = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div/div[2]/div/div[5]/div/div[1]/div[5]/div/ul')))
-        # li = div_result.find_elements(By.CSS_SELECTOR, '.job_seen_beacon')
+        # find the div that contains cards with job descriptions
+        div_result = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div/div[2]/div/div[5]/div/div[1]/div[5]/div/ul')))
+        li = div_result.find_elements(By.CSS_SELECTOR, '.job_seen_beacon')
 
-        # for each in li:
-        #     time.sleep(2)
-        #     job_links.append(each.find_element(By.TAG_NAME, 'a').get_attribute('href'))
+        for each in li:
+            time.sleep(2)
+            job_links.append(each.find_element(By.TAG_NAME, 'a').get_attribute('href'))
 
-        
-        self.get_current_pagination(driver)
+        print(job_links)
+       
 
 
-        # return job_links
     
 
 
@@ -154,9 +157,10 @@ class BaseScraper:
 
         self.perform_search(body=body_page, title='data', location='london' ,driver=driver)
 
-        job_links = self.get_job_results(driver=driver)
+        # job_links = self.get_job_results(driver=driver)
         # to_file = link_to_file('indeed_links.csv',job_links)
         # print(to_file)
+        self.get_current_pagination(driver)
 
               
 
