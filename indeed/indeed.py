@@ -43,8 +43,9 @@ class BaseScraper:
         for each in self.selenium_arguments:
             self.options.add_argument(each)
         
-    def hit_and_wait(self, interval=10):
-        self.options.headless = True
+    def hit_and_wait(self, interval=10, headless=False):
+        if headless:
+            self.options.add_argument("headless")
         try:
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=self.options)
@@ -141,7 +142,7 @@ class LinkScraper(BaseScraper):
         to_file = link_to_file('indeed_links.csv',job_links)
         print(to_file)
        
-
+    
     
 
     def execute(self):
