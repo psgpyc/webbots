@@ -27,7 +27,7 @@ class JobScraper(BaseScraper):
     filepath = 'indeed_links.csv'
 
     def __init__(self):
-        self.url = read_links_from_csv(file_path=JobScraper.filepath, index=0)[2]
+        self.url = read_links_from_csv(file_path=JobScraper.filepath, index=0)[100]
 
         super().__init__(self.url)
 
@@ -96,10 +96,31 @@ class JobScraper(BaseScraper):
             job_type = job_type_element.text
 
             return job_type
+        
+        except NoSuchElementException:
+            print("Error: Could not find the job type element on the page.")
+            return None
 
         except Exception as e:
-            print(f"An error occurred while extracting salary")
+            print(f"An error occurred while extracting job_type")
             return None
+        
+    def get_job_location(self, body):
+        try:
+            location_container = body.find_element(By.ID, 'jobLocationWrapper')
+            location_elem = location_container.find_element(By.CSS_SELECTOR, "div[data-testid=jobsearch-JobInfoHeader-companyLocation]")
+
+            return location_elem.text
+
+
+        except NoSuchElementException:
+            print("Error: Could not find the company address element on the page.")
+            return None
+        except Exception as e:
+            print(f"An unexpected error occurred while getting the address element:", str(e))
+            return None     
+
+
 
 
 
@@ -111,6 +132,7 @@ class JobScraper(BaseScraper):
             print(self.get_company_name(body))
             print(self.get_salary(body))
             print(self.get_job_type(body))
+            print(self.get_job_location(body))
 
            
 
