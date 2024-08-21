@@ -18,7 +18,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from helpers.helper import get_user_agent, link_to_file
 
-
 class BaseScraper:
     def __init__(self, url):
         self.headers = {'User_Agent': get_user_agent()}
@@ -43,6 +42,23 @@ class BaseScraper:
 
         for each in self.selenium_arguments:
             self.options.add_argument(each)
+        
+    def hit_and_wait(self, interval=10):
+        self.options.headless = True
+        try:
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=self.options)
+            driver.get(self.url)
+        except Exception as e:
+            print(f'an error occurred: {e}')
+
+        driver.maximize_window()
+        return driver
+
+
+class LinkScraper(BaseScraper):
+    def __init__(self, url):
+        super().__init__(url)
 
     def perform_search(self, body, title, location, driver):
         search_bar_title = body.find_element(By.ID, 'text-input-what')
@@ -126,16 +142,10 @@ class BaseScraper:
         print(to_file)
        
 
-    def hit_and_wait(self, interval=10):
-        self.options.headless = True
-        try:
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=self.options)
-            driver.get(self.url)
-        except Exception as e:
-            print(f'an error occurred: {e}')
+    
 
-        driver.maximize_window()
+    def execute(self):
+        driver = self.hit_and_wait()
         try:
             body_page = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
         except (NoSuchElementException, TimeoutException):
@@ -149,7 +159,7 @@ class BaseScraper:
         self.get_current_pagination(driver)
 
               
-
+if __name__ == '__main__':
         
-indeed = BaseScraper(url='https://uk.indeed.com/')
-indeed.hit_and_wait()
+    indeed = LinkScraper(url='https://uk.indeed.com/')
+    indeed.execute()
