@@ -124,11 +124,11 @@ class JobScraper(BaseScraper):
             print(f"An unexpected error occurred while getting the address element:", str(e))
             return None     
         
-    def get_insights_wrapper(self, body, id):
+    def get_section_wrapper(self, body, id):
         # check if a particular block exists. eg: Job Details,  Benefit, Full Job Description
         try:
-            profile_insight_wrapper_elem = body.find_element(By.ID, id)
-            return profile_insight_wrapper_elem
+            wrapper_elem = body.find_element(By.ID, id)
+            return wrapper_elem
 
         except NoSuchElementException:
             print('Profile Insights element not found')
@@ -138,25 +138,24 @@ class JobScraper(BaseScraper):
 
         # extract group roles for each div in insights wrapper above
         job_details = {
-            'job type': None
+            'Job type' : None,
+            'Shift and schedule': None
         }
 
         try:
             group_divs = profile_insights_wrapper.find_elements(By.CSS_SELECTOR, "div[role='group']")
             if len(group_divs) > 0:
                 for each in group_divs:
-                    if each.get_attribute('aria-label') == 'Job type':
-                        job_details['job type'] = self.get_job_type(body)
-                    elif each.get_attribute('aria-label') == 'Shift and schedule':
-                        list_elem = each.find_elements(By.CSS_SELECTOR, 'li.js-match-insights-provider-hj3618.eu4oa1w0')
-                        print(len(list_elem))
-                        print(list_elem[0].text)
-                        
+                    list_elem = each.find_elements(By.CSS_SELECTOR, 'li.js-match-insights-provider-hj3618.eu4oa1w0')
+                    job_details[each.get_attribute('aria-label')] = [elem.text for elem in list_elem]       
+
+                print(job_details)  
             else:
                 print('group roles do not exist')
-                return None
+                return job_details
         except NoSuchElementException:
             print('Couldnot locate role divs')
+            return job_details
 
     def execute(self):
         driver = self.hit_and_wait()
@@ -167,9 +166,12 @@ class JobScraper(BaseScraper):
             print(self.get_salary(body))
            
             print(self.get_job_location(body))
-            profile_insights_wrapper = self.get_insights_wrapper(body=body, id='mosaic-vjJobDetails')
+            profile_insights_wrapper = self.get_section_wrapper(body=body, id='mosaic-vjJobDetails')
             if profile_insights_wrapper:
                 self.extract_div_roles_from_insight_wrapper(body, profile_insights_wrapper)
+            benefits = self.get_section_wrapper(body=body, id='benefits')
+            if benefits:
+                print('exists')
 
            
 
