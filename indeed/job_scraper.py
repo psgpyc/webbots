@@ -134,7 +134,7 @@ class JobScraper(BaseScraper):
             print('Profile Insights element not found')
             return None
 
-    def extract_div_roles_from_insight_wrapper(self, body, profile_insights_wrapper):
+    def extract_div_roles_from_section_wrapper(self, body, profile_insights_wrapper):
 
         # extract group roles for each div in insights wrapper above
         job_details = {
@@ -156,6 +156,20 @@ class JobScraper(BaseScraper):
         except NoSuchElementException:
             print('Couldnot locate role divs')
             return job_details
+        
+    def extract_benefits(self, benefit_wrapper):
+        benefit_details = {
+            'benefits': None
+        }
+        
+        try:
+            benefits_li_elem = benefit_wrapper.find_elements(By.CSS_SELECTOR, 'li.css-kyg8or.eu4oa1w0')
+
+            benefit_details['benefits'] = [elem.text for elem in benefits_li_elem]
+            return benefit_details
+        except NoSuchElementException:
+            print('no benefit element located')
+            return benefit_details
 
     def execute(self):
         driver = self.hit_and_wait()
@@ -168,10 +182,10 @@ class JobScraper(BaseScraper):
             print(self.get_job_location(body))
             profile_insights_wrapper = self.get_section_wrapper(body=body, id='mosaic-vjJobDetails')
             if profile_insights_wrapper:
-                self.extract_div_roles_from_insight_wrapper(body, profile_insights_wrapper)
+                self.extract_div_roles_from_section_wrapper(body, profile_insights_wrapper)
             benefits = self.get_section_wrapper(body=body, id='benefits')
             if benefits:
-                print('exists')
+                print(self.extract_benefits(benefit_wrapper=benefits))
 
            
 
