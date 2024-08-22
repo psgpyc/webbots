@@ -27,7 +27,7 @@ class JobScraper(BaseScraper):
     filepath = 'indeed_links.csv'
 
     def __init__(self):
-        self.url = read_links_from_csv(file_path=JobScraper.filepath, index=0)[100]
+        self.url = read_links_from_csv(file_path=JobScraper.filepath, index=0)[0]
 
         super().__init__(self.url)
 
@@ -80,9 +80,12 @@ class JobScraper(BaseScraper):
             salary = salary_element.text
 
             return salary
+        except NoSuchElementException:
+            print("Error: Could not find the salary element on the page.")
+            return None
 
         except Exception as e:
-            print(f"An error occurred while extracting salary")
+            print(f"An error occurred while extracting salary", e)
             return None
     
     def get_job_type(self, body):
@@ -102,16 +105,17 @@ class JobScraper(BaseScraper):
             return None
 
         except Exception as e:
-            print(f"An error occurred while extracting job_type")
+            print(f"An error occurred while extracting job_type", e)
             return None
         
     def get_job_location(self, body):
         try:
             location_container = body.find_element(By.ID, 'jobLocationWrapper')
-            location_elem = location_container.find_element(By.CSS_SELECTOR, "div[data-testid=jobsearch-JobInfoHeader-companyLocation]")
-
+            try:
+                location_elem = location_container.find_element(By.CSS_SELECTOR, "div[data-testid=jobsearch-JobInfoHeader-companyLocation]")
+            except NoSuchElementException:
+                location_elem = location_container.find_element(By.CSS_SELECTOR, "div[data-testid='job-location']")
             return location_elem.text
-
 
         except NoSuchElementException:
             print("Error: Could not find the company address element on the page.")
@@ -119,10 +123,40 @@ class JobScraper(BaseScraper):
         except Exception as e:
             print(f"An unexpected error occurred while getting the address element:", str(e))
             return None     
+        
+    def get_insights_wrapper(self, body, id):
+        # check if a particular block exists. eg: Job Details,  Benefit, Full Job Description
+        try:
+            profile_insight_wrapper_elem = body.find_element(By.ID, id)
+            return profile_insight_wrapper_elem
 
+        except NoSuchElementException:
+            print('Profile Insights element not found')
+            return None
 
+    def extract_div_roles_from_insight_wrapper(self, body, profile_insights_wrapper):
 
+        # extract group roles for each div in insights wrapper above
+        job_details = {
+            'job type': None
+        }
 
+        try:
+            group_divs = profile_insights_wrapper.find_elements(By.CSS_SELECTOR, "div[role='group']")
+            if len(group_divs) > 0:
+                for each in group_divs:
+                    if each.get_attribute('aria-label') == 'Job type':
+                        job_details['job type'] = self.get_job_type(body)
+                    elif each.get_attribute('aria-label') == 'Shift and schedule':
+                        list_elem = each.find_elements(By.CSS_SELECTOR, 'li.js-match-insights-provider-hj3618.eu4oa1w0')
+                        print(len(list_elem))
+                        print(list_elem[0].text)
+                        
+            else:
+                print('group roles do not exist')
+                return None
+        except NoSuchElementException:
+            print('Couldnot locate role divs')
 
     def execute(self):
         driver = self.hit_and_wait()
@@ -131,8 +165,11 @@ class JobScraper(BaseScraper):
             print(self.get_job_title(body))
             print(self.get_company_name(body))
             print(self.get_salary(body))
-            print(self.get_job_type(body))
+           
             print(self.get_job_location(body))
+            profile_insights_wrapper = self.get_insights_wrapper(body=body, id='mosaic-vjJobDetails')
+            if profile_insights_wrapper:
+                self.extract_div_roles_from_insight_wrapper(body, profile_insights_wrapper)
 
            
 
