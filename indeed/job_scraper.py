@@ -134,7 +134,7 @@ class JobScraper(BaseScraper):
             print('Profile BLock element( Job Details,  Benefit) not found')
             return None
 
-    def extract_div_roles_from_section_wrapper(self, body, profile_insights_wrapper):
+    def extract_from_job_details_section_wrapper(self, body, profile_insights_wrapper):
 
         # extract group roles for each div in insights wrapper above
         job_details = {
@@ -149,7 +149,7 @@ class JobScraper(BaseScraper):
                     list_elem = each.find_elements(By.CSS_SELECTOR, 'li.js-match-insights-provider-hj3618.eu4oa1w0')
                     job_details[each.get_attribute('aria-label')] = [elem.text for elem in list_elem]       
 
-                print(job_details)  
+                return job_details
             else:
                 print('group roles do not exist')
                 return job_details
@@ -183,38 +183,38 @@ class JobScraper(BaseScraper):
         job_description = {}
         try:
             ul_list = wrapper.find_elements(By.TAG_NAME, 'ul')
+
+            for each in ul_list:
+                previous_sibling = each.find_element(By.XPATH, "./preceding-sibling::*[1]")
+                job_description[previous_sibling.text] = self.extract_text_from_li(ul_elem=each)
+
+            return job_description
+
             
         except NoSuchElementException:
             print('unable to locate job description ul elems')
-        
-        for each in ul_list:
-            previous_sibling = each.find_element(By.XPATH, "./preceding-sibling::*[1]")
-            job_description[previous_sibling.text] = self.extract_text_from_li(ul_elem=each)
-
-
-        print(job_description)
-
-
-
-        
+            return job_description        
 
     def execute(self):
+        extracted_details = {} 
         driver = self.hit_and_wait()
         body_tag_exists, body = self.check_body_tag_exists(driver)
         if body_tag_exists:
-            print(self.get_job_title(body))
-            print(self.get_company_name(body))
-            print(self.get_salary(body))
-           
-            print(self.get_job_location(body))
-            profile_insights_wrapper = self.get_section_wrapper(body=body, id='mosaic-vjJobDetails')
-            if profile_insights_wrapper:
-                self.extract_div_roles_from_section_wrapper(body, profile_insights_wrapper)
+
+            extracted_details['job_title'] = self.get_job_title(body)
+            extracted_details['company_name'] = self.get_company_name(body)
+            extracted_details['salary'] = self.get_salary(body)
+            extracted_details['job_location'] = self.get_job_location(body)
+            job_details_wrapper = self.get_section_wrapper(body=body, id='mosaic-vjJobDetails')
+            if job_details_wrapper:
+                extracted_details['job_details'] = self.extract_from_job_details_section_wrapper(body, job_details_wrapper)
             benefits = self.get_section_wrapper(body=body, id='benefits')
             if benefits:
-                print(self.extract_benefits(benefit_wrapper=benefits))
+                extracted_details['benefits'] = self.extract_benefits(benefit_wrapper=benefits)
             full_job_description = self.get_section_wrapper(body=body, id="jobDescriptionText")
-            self.extract_job_description(wrapper=full_job_description, driver=driver)
+            extracted_details['job_description'] = self.extract_job_description(wrapper=full_job_description, driver=driver)
+
+        print(extracted_details)
            
 
 
