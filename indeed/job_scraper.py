@@ -27,7 +27,7 @@ class JobScraper(BaseScraper):
     filepath = 'indeed_links.csv'
 
     def __init__(self):
-        self.url = read_links_from_csv(file_path=JobScraper.filepath, index=0)[0]
+        self.url = read_links_from_csv(file_path=JobScraper.filepath, index=0)[722]
 
         super().__init__(self.url)
 
@@ -131,7 +131,7 @@ class JobScraper(BaseScraper):
             return wrapper_elem
 
         except NoSuchElementException:
-            print('Profile Insights element not found')
+            print('Profile BLock element( Job Details,  Benefit) not found')
             return None
 
     def extract_div_roles_from_section_wrapper(self, body, profile_insights_wrapper):
@@ -170,6 +170,33 @@ class JobScraper(BaseScraper):
         except NoSuchElementException:
             print('no benefit element located')
             return benefit_details
+        
+    def extract_text_from_li(self, ul_elem):
+        try:
+            li_elem = ul_elem.find_elements(By.TAG_NAME, 'li')
+            return [li.text for li in li_elem]
+        except NoSuchElementException:
+            print('no li element exists')
+
+        
+    def extract_job_description(self, wrapper, driver):
+        job_description = {}
+        try:
+            ul_list = wrapper.find_elements(By.TAG_NAME, 'ul')
+            
+        except NoSuchElementException:
+            print('unable to locate job description ul elems')
+        
+        for each in ul_list:
+            previous_sibling = each.find_element(By.XPATH, "./preceding-sibling::*[1]")
+            job_description[previous_sibling.text] = self.extract_text_from_li(ul_elem=each)
+
+
+        print(job_description)
+
+
+
+        
 
     def execute(self):
         driver = self.hit_and_wait()
@@ -186,7 +213,8 @@ class JobScraper(BaseScraper):
             benefits = self.get_section_wrapper(body=body, id='benefits')
             if benefits:
                 print(self.extract_benefits(benefit_wrapper=benefits))
-
+            full_job_description = self.get_section_wrapper(body=body, id="jobDescriptionText")
+            self.extract_job_description(wrapper=full_job_description, driver=driver)
            
 
 
